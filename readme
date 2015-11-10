@@ -4,5 +4,5 @@ Hope u like it :)
 function1:save the first n lines data to file.
 function2:save the data between dates.
 function3:save the data by some key word.
-    (make sure you write your own keywords into the filter.ini file!!!)
+    (you must write your own keywords into the filter.ini file first!!!)
 function4:convert the txt file into csv file.
