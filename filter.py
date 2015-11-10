@@ -19,27 +19,39 @@ prompt = {'choose' : 'Choose function:\
             \n3:save the data by some key word.\
             \n4:convert the txt file into csv file.\n', 
             'save_k_line' : 'Enter the number of lines you want to save: ',
-            'choose_date_from' : 'Enter the start date(e.g. 20140801): ',
-            'choose_date_to' : 'Enter the end date(e.g. 20141231): ',
+            'choose_date_from' : 'Enter the start date yyyymmddhh(e.g. 2014080108): ',
+            'choose_date_to' : 'Enter the end date yyyymmddhh(e.g. 2014123124): ',
             'convert' : 'Convert txt to csv?(yes:1, no:0): ',
             'keyword' : 'Enter the keyword type(e.g. line): ',
             'file_path_read' : 'Enther the file path you want to handle: '}
 keyword = dict(cf.items('keyword'))
 
-def change_file_charset(file_name, file_type, charset):
-    output_file_name = file_name[:file_name.rfind('.')] + file_type
-    f = open(file_name)
+def change_file_charset(file_path, file_type, charset):
+    """change file type
+
+    txt file into other type of file like .csv
+
+    Args:
+        file_path: the txt file path
+        file_type: the file type you want to convert to(mostly .csv)
+        charset: the charset convert to
+
+    Returns:
+        None
+    """
+    output_file_name = file_path[:file_path.rfind('.')] + file_type
+    f = open(file_path)
     s = f.read()
     f.close()
 
-    if file_name == output_file_name or output_file_name == "":
-        remove(file_name)
+    if file_path == output_file_name or output_file_name == "":
+        remove(file_path)
 
     old_charset = chardet.detect(s)['encoding']
     u = s.decode(old_charset)
 
     if output_file_name == "":
-        output_file_name = file_name
+        output_file_name = file_path
     f = open(output_file_name, 'w')
     s = u.encode(charset)
     f.write(s)
@@ -48,13 +60,25 @@ def change_file_charset(file_name, file_type, charset):
 
 
 def save_by_line(file_path_read, file_path_write, k):
+    """save the first k lines of file
+
+    the output file will be named by 'source_file_name-saveklines.txt'
+
+    Args:
+        file_path_read: the source file path
+        file_path_write: the output file path 
+        k: the lines you want to save
+
+    Returns:
+        None
+    """
     fp_read = open(file_path_read, 'r')
     fp_write = open(file_path_write, 'w')
     i = 1
     for line in fp_read:
         fp_write.write(line)
         i = i+1
-        if i > max_line:
+        if i > k:
             break
     fp_read.close()
     fp_write.close()
@@ -62,6 +86,19 @@ def save_by_line(file_path_read, file_path_write, k):
 
 
 def save_by_date(date_from, date_to, file_path_read, file_path_write):
+    """save the data between some dates
+
+    the output file will be named by 'source_file_name-date_from-date_to.txt'
+
+    Args:
+        date_from: the begin date
+        date_to: the end date
+        file_path_read: the source file path
+        file_path_write: the output file path
+
+    Returns:
+        None 
+    """
     fp_read = open(file_path_read, 'r')
     fp_write = open(file_path_write, 'w')
     for line in fp_read:
@@ -74,6 +111,20 @@ def save_by_date(date_from, date_to, file_path_read, file_path_write):
 
 
 def save_by_keyword(key_index, key_word, file_path_read, file_path_write):
+    """save the data by keyword
+
+    first write you own keyword into the filter.ini file!!!
+    the output file will be named by 'source_file_name-keyword.txt'
+
+    Args:
+        key_index: the index of keyword
+        key_word: the keyword 
+        file_path_read: the source file path
+        file_path_write: the output file path
+
+    Returns:
+        None 
+    """
     fp_read = open(file_path_read, 'r')
     fp_write = open(file_path_write, 'w')
     for line in fp_read:
@@ -97,17 +148,9 @@ def convert(file_name, file_type, charset):
 
 
 if __name__ == '__main__':
-    # os.system('pip install chardet')
-    # file_path_read = raw_input(prompt['file_path_read'])
-    # file_path_read = '../origin/gd_train_data.txt'
-    # file_path_read = '../train_data_filtered.txt'
-    # file_path_write = '../train_data_filtered'
-    # file_path_write = file_path_read[:file_path_read.rfind('.')]
     while(1):
         print('\n')
         func_num = raw_input(prompt['choose'])
-        # file_path_read = raw_input(prompt['file_path_read'])
-        # file_path_write = file_path_read[:file_path_read.rfind('.')]
         if func_num == '0':
             break
 
@@ -115,9 +158,8 @@ if __name__ == '__main__':
             file_path_read = raw_input(prompt['file_path_read'])
             file_path_write = file_path_read[:file_path_read.rfind('.')]
             k = int(raw_input(prompt['save_k_line']))
-            file_txt = file_path_write+'-save'+k+'lines.txt'
+            file_txt = file_path_write+'-save'+str(k)+'lines.txt'
             save_by_line(file_path_read, file_txt, k)
-            # convert(file_path_write, '.csv', 'gb2312')
 
         elif func_num == '2':
             file_path_read = raw_input(prompt['file_path_read'])
@@ -126,7 +168,6 @@ if __name__ == '__main__':
             date_to = raw_input(prompt['choose_date_to'])
             file_txt = file_path_write+'-'+date_from+'-'+date_to+'.txt'
             save_by_date(date_from, date_to, file_path_read, file_txt)
-            # convert(file_txt, '.csv', 'gb2312')
 
         elif func_num == '3':
             file_path_read = raw_input(prompt['file_path_read'])
