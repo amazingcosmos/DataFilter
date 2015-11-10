@@ -6,3 +6,4 @@ function2:save the data between dates.
 function3:save the data by some key word.
     (you must write your own keywords into the filter.ini file first!!!)
 function4:convert the txt file into csv file.
+    (csv can be opened by excel and do some analysis)
