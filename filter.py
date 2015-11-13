@@ -147,6 +147,10 @@ def convert(file_name, file_type, charset):
             continue
 
 
+def data_counter(file_path_read, file_path_write, key_index):
+    pass
+
+
 if __name__ == '__main__':
     while(1):
         print('\n')

@@ -1,3 +1,4 @@
 /data/*
 *.txt
 *.csv
+!data_analyse.txt
