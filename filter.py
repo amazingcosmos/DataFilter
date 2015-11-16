@@ -4,6 +4,7 @@
 import chardet
 import os
 import ConfigParser
+import types
 import sys
 reload(sys)
 sys.setdefaultencoding('utf-8')
@@ -11,20 +12,25 @@ sys.setdefaultencoding('utf-8')
 cf = ConfigParser.ConfigParser()
 cf.read('./filter.ini')
 
+holiday = ['20140906', '20140907', '20140908', 
+            '20141001', '20141002', '20141003', 
+            '20141004', '20141005', '20141006', '20141007']
 
 prompt = {'choose' : 'Choose function:\
             \n0:exit.\
             \n1:save the first n lines data to file.\
             \n2:save the data between dates.\
             \n3:save the data by some key word.\
-            \n4:convert the txt file into csv file.\n', 
+            \n4:convert the txt file into csv file.\
+            \n5:count the date.\n', 
             'save_k_line' : 'Enter the number of lines you want to save: ',
             'choose_date_from' : 'Enter the start date yyyymmddhh(e.g. 2014080108): ',
             'choose_date_to' : 'Enter the end date yyyymmddhh(e.g. 2014123124): ',
             'convert' : 'Convert txt to csv?(yes:1, no:0): ',
             'keyword' : 'Enter the keyword type(e.g. line): ',
-            'file_path_read' : 'Enther the file path you want to handle: '}
-keyword = dict(cf.items('keyword'))
+            'file_path_read' : 'Enther the file path you want to handle: ',
+            'index' : 'Enter the index you want to count: '}
+# keyword = dict(cf.items('keyword'))
 
 def change_file_charset(file_path, file_type, charset):
     """change file type
@@ -128,7 +134,8 @@ def save_by_keyword(key_index, key_word, file_path_read, file_path_write):
     fp_read = open(file_path_read, 'r')
     fp_write = open(file_path_write, 'w')
     for line in fp_read:
-        word = line.split(',')[key_index]
+        word = line.strip().split(',')[key_index]
+        # print chardet.detect(word)['encoding'], chardet.detect(key_word)['encoding']
         if word == key_word:
             fp_write.write(line)
     fp_read.close()
@@ -147,8 +154,148 @@ def convert(file_name, file_type, charset):
             continue
 
 
-def data_counter(file_path_read, file_path_write, key_index):
-    pass
+def data_counter(file_path_read, my_dict, key_index):
+    fp_read = open(file_path_read, 'r')
+    for line in fp_read:
+        key = line.strip().split(',')[key_index]
+        if key not in my_dict:
+            my_dict[key] = 1
+        else:
+            my_dict[key] += 1
+    return my_dict
+
+
+def gen_date_dict():
+    my_dict = {}
+    date_y = '2014'
+    mm = 8
+    while mm <= 12:
+        date_m = date_y
+        if mm < 10:
+            date_m += '0'
+        date_m += str(mm)
+        dd = 1
+        while dd <= 31:
+            if mm % 2 == 1 and dd == 31:
+                break
+            date_d = date_m 
+            if dd < 10:
+                date_d += '0'
+            date_d += str(dd)
+            hh = 6
+            while hh <= 21:
+                date_h = date_d 
+                if hh < 10:
+                    date_h += '0'
+                date_h += str(hh)
+                my_dict[date_h] = 0
+                hh += 1
+            dd += 1
+        mm += 1
+    return my_dict
+
+
+def what_day(yyyymmdd):
+    # if yyyymmdd == '20140928' or yyyymmdd == '20141011':
+    #     return False
+    c=int(yyyymmdd[:2])
+    y=int(yyyymmdd[2:4])
+    m=int(yyyymmdd[4:6])
+    d=int(yyyymmdd[6:8])
+    #print(c,y,m,d)
+
+    flag=0
+    if (m==2 or d==31):
+        if d==31 and (m in (4,6,9,11)):
+            flag=1
+        if m==2 and (d>29 or (d==29 and (y%4 !=0 or (y==0 and c%4 !=0)))):
+            flag=1
+
+    if m==1 or m==2:
+        m=m+12
+        y=y-1
+        if y<0:
+            y=99
+            c=c-1
+
+    w=y+(y//4)+(c//4)-2*c+26*(m+1)//10+d-1
+    w = w % 7
+    return str(w)
+    # if w == 0 or w == 6:
+    #     return True
+    # else:
+    #     return False
+
+
+def change_file_extensions(old_name, exten_type):
+    new_name = old_name[:old_name.rfind('.')]
+    new_name += '.' + exten_type
+    os.rename(old_name, new_name)
+
+
+def walk_dir(dir_path, file_type):
+    file_names = []
+    if os.path.isdir(dir_path):
+        for parent, dirnames, filenames in os.walk(dir_path):
+            for file_name in filenames:
+                if file_name.strip().split('.')[-1] == file_type:
+                    temp = parent+'/'+file_name
+                    file_names.append(temp)
+    return file_names
+
+
+def txt_to_csv(dir_path):
+    file_names = walk_dir(dir_path, 'csv')
+    for file_name in file_names:
+        change_file_extensions(file_name, 'txt')
+
+
+def analyse_data(file_path_read):
+    lables = 'what_day, hour, holiday, num'
+    if os.path.isdir(file_path_read):
+        file_path_read = walk_dir(file_path_read, 'txt')
+
+    if type(file_path_read) == types.ListType:
+        for path_read in file_path_read:
+            file_path_write = path_read[:path_read.rfind('.')]
+            file_path_write += '-analyse.csv'
+
+            fp_read = open(path_read, 'r')
+            fp_write = open(file_path_write, 'w')
+            fp_write.write(lables+'\n')
+            for line in fp_read:
+                date, num = line.strip().split(',')
+                hour = date[-2:]
+                date = date[:-2]
+                temp = ''
+                temp += what_day(date) + ',' + hour + ','
+                if date in holiday:
+                    temp += '1' + ','
+                else:
+                    temp += '0' + ','
+                temp += num 
+                fp_write.write(temp+'\n')
+            fp_read.close()
+            fp_write.close()
+    else:
+        file_path_write = file_path_read[:file_path_read.rfind('.')]
+        file_path_write += '-analyse.csv'
+
+        fp_read = open(file_path_read, 'r')
+        fp_write = open(file_path_write, 'w')
+        fp_write.write(lables+'\n')
+        for line in fp_read:
+            date, num = line.strip().split(',')
+            temp = ''
+            temp += what_day(date) + ','
+            if date in holiday:
+                temp += '1' + ','
+            else:
+                temp += '0' + ','
+            temp += num 
+            fp_write.write(temp+'\n')
+        fp_read.close()
+        fp_write.close()
 
 
 if __name__ == '__main__':
@@ -174,15 +321,21 @@ if __name__ == '__main__':
             save_by_date(date_from, date_to, file_path_read, file_txt)
 
         elif func_num == '3':
+            keyword = dict(cf.items('key_word'))
+            keyindex = dict(cf.items('key_index'))
+            filename = dict(cf.items('file_name'))
             file_path_read = raw_input(prompt['file_path_read'])
             file_path_write = file_path_read[:file_path_read.rfind('.')]
             key_type = raw_input(prompt['keyword'])           
             key_words = list(eval(keyword[key_type]))
-            key_index = int(key_words[0])
-            key_words = key_words[1:]
+            file_names = list(eval(filename[key_type]))
+            # key_index = int(key_words[0])
+            key_index = int(keyindex[key_type])
+            # key_words = key_words[1:]
             
             for key_word in key_words:
-                file_txt = file_path_write+'-'+key_word+'.txt'
+                file_name = file_names[key_words.index(key_word)]
+                file_txt = file_path_write+'-'+file_name+'.txt'
                 file_txt.encode('utf-8')
                 save_by_keyword(key_index, key_word, file_path_read, file_txt)
 
@@ -190,6 +343,45 @@ if __name__ == '__main__':
             file_path_read = raw_input(prompt['file_path_read'])
             convert(file_path_read, '.csv', 'gb2312')
 
+        elif func_num == '5':
+            file_path_read = raw_input(prompt['file_path_read'])
+            # key_index = int(raw_input(prompt['index']))
+            key_index = 5
+
+            if os.path.isdir(file_path_read):
+                file_path_read = walk_dir(file_path_read, 'txt')
+                # dir_path = file_path_read
+                # file_path_read = []
+                # for parent, dirnames, filenames in os.walk(dir_path):
+                #     for file_name in filenames:
+                #         if file_name.strip().split('.')[-1] == 'txt':
+                #             temp = parent+'/'+file_name
+                #             file_path_read.append(temp)
+
+            if type(file_path_read) == types.ListType:
+                for path_read in file_path_read:
+                    file_path_write = path_read[:path_read.rfind('.')]
+                    file_path_write += '-date.txt'
+                    my_dict = gen_date_dict()
+                    my_dict = data_counter(path_read, my_dict, key_index)
+                    fp = open(file_path_write, 'w')
+                    for key in my_dict:
+                            fp.write(str(key)+','+str(my_dict[key])+'\n')
+                    fp.close()
+            else:
+                file_namepath_write = file_path_read[:file_path_read.rfind('.')]
+                file_path_write += '-date.txt'
+                my_dict = gen_date_dict()
+                my_dict = data_counter(file_path_read, my_dict, key_index)
+                fp = open(file_path_write, 'w')
+                for key in my_dict:
+                        fp.write(str(key)+','+str(my_dict[key])+'\n')
+                fp.close()
+
+        elif func_num == '6':
+            print 'analyse the data.\n'
+            file_path_read = raw_input(prompt['file_path_read'])
+            analyse_data(file_path_read)
 
         else:
             continue
