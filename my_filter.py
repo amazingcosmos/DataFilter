@@ -10,11 +10,12 @@ reload(sys)
 sys.setdefaultencoding('utf-8')
 
 cf = ConfigParser.ConfigParser()
-cf.read('./filter.ini')
+cf.read('./my_filter.ini')
 
 holiday = ['20140906', '20140907', '20140908', 
             '20141001', '20141002', '20141003', 
-            '20141004', '20141005', '20141006', '20141007']
+            '20141004', '20141005', '20141006', 
+            '20141007', '20150101', '20150102', '20150103']
 
 prompt = {'choose' : 'Choose function:\
             \n0:exit.\
@@ -165,17 +166,58 @@ def data_counter(file_path_read, my_dict, key_index):
     return my_dict
 
 
-def gen_date_dict():
+def gen_date_dict_bak(date_start, date_end):
+    y_start = int(date_start[:4])
+    m_start = int(date_start[4:6])
+    d_start = int(date_start[6:8])
+    h_start = int(date_start[8:])
+    y_end = int(date_end[:4])
+    m_end = int(date_end[4:6])
+    d_end = int(date_end[6:8])
+    h_end = int(date_end[8:])
+
     my_dict = {}
-    date_y = '2014'
-    mm = 8
-    while mm <= 12:
+    yyyy = y_start
+    while yyyy <= y_end:
+        mm = 8
+        while mm <= 12:
+            date_m = str(yyyy)
+            if mm < 10:
+                date_m += '0'
+            date_m += str(mm)
+            dd = 1
+            while dd <= 31:
+                if mm % 2 == 1 and dd == 31:
+                    break
+                date_d = date_m 
+                if dd < 10:
+                    date_d += '0'
+                date_d += str(dd)
+                hh = 6
+                while hh <= 21:
+                    date_h = date_d 
+                    if hh < 10:
+                        date_h += '0'
+                    date_h += str(hh)
+                    print date_h
+                    my_dict[date_h] = 0
+                    hh += 1
+                dd += 1
+            mm += 1
+        yyyy += 1
+    return my_dict
+
+def gen_date_dict():
+    my_dict = []
+    date_y = '2015'
+    mm = 1
+    while mm <= 1:
         date_m = date_y
         if mm < 10:
             date_m += '0'
         date_m += str(mm)
         dd = 1
-        while dd <= 31:
+        while dd <= 7:
             if mm % 2 == 1 and dd == 31:
                 break
             date_d = date_m 
@@ -188,7 +230,8 @@ def gen_date_dict():
                 if hh < 10:
                     date_h += '0'
                 date_h += str(hh)
-                my_dict[date_h] = 0
+                # my_dict[date_h] = 0
+                my_dict.append(date_h)
                 hh += 1
             dd += 1
         mm += 1
@@ -220,6 +263,8 @@ def what_day(yyyymmdd):
 
     w=y+(y//4)+(c//4)-2*c+26*(m+1)//10+d-1
     w = w % 7
+    if w == 0:
+        w = 7
     return str(w)
     # if w == 0 or w == 6:
     #     return True
@@ -251,7 +296,8 @@ def txt_to_csv(dir_path):
 
 
 def analyse_data(file_path_read):
-    lables = 'what_day, hour, holiday, num'
+    lables = 'what_day,hour,holiday,num'
+    # lables = 'what_day,hour,holiday'
     if os.path.isdir(file_path_read):
         file_path_read = walk_dir(file_path_read, 'txt')
 
@@ -265,15 +311,16 @@ def analyse_data(file_path_read):
             fp_write.write(lables+'\n')
             for line in fp_read:
                 date, num = line.strip().split(',')
+                # date = line.strip()
                 hour = date[-2:]
                 date = date[:-2]
                 temp = ''
                 temp += what_day(date) + ',' + hour + ','
                 if date in holiday:
-                    temp += '1' + ','
+                    temp += '1'
                 else:
-                    temp += '0' + ','
-                temp += num 
+                    temp += '0'
+                temp += ',' + num 
                 fp_write.write(temp+'\n')
             fp_read.close()
             fp_write.close()
@@ -286,16 +333,47 @@ def analyse_data(file_path_read):
         fp_write.write(lables+'\n')
         for line in fp_read:
             date, num = line.strip().split(',')
+            # date = line.strip()
+            hour = date[-2:]
+            date = date[:-2]
             temp = ''
-            temp += what_day(date) + ','
+            temp += what_day(date) + ',' + hour + ','
             if date in holiday:
-                temp += '1' + ','
+                temp += '1'
             else:
-                temp += '0' + ','
-            temp += num 
+                temp += '0'
+            temp += ',' + num 
             fp_write.write(temp+'\n')
         fp_read.close()
         fp_write.close()
+
+
+def make_result(file_path_read):
+    fp_read = open('./date-7.txt', 'r')
+    date_list = []
+    hour_list = []
+    for line in fp_read:
+        line = line.strip()
+        date_list.append(line[:8])
+        hour_list.append(line[8:])
+    fp_read.close()
+    
+    file_path_write = file_path_read[:file_path_read.rfind('.')]
+    file_path_write += '-full.txt'
+    fp_read = open(file_path_read, 'r')
+    fp_write = open(file_path_write, 'w')
+    i = 0
+    for line in fp_read:
+        
+        num = int(float(line))
+        if num < 0:
+            num = 0
+        temp = '线路15' + ',' + date_list[i] + ',' + hour_list[i] + ',' + str(num)
+        fp_write.write(temp+'\n')
+        i += 1
+    fp_read.close()
+    fp_write.close()
+
 
 
 if __name__ == '__main__':
