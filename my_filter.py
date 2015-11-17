@@ -134,13 +134,31 @@ def save_by_keyword(key_index, key_word, file_path_read, file_path_write):
     """
     fp_read = open(file_path_read, 'r')
     fp_write = open(file_path_write, 'w')
-    for line in fp_read:
-        word = line.strip().split(',')[key_index]
-        # print chardet.detect(word)['encoding'], chardet.detect(key_word)['encoding']
-        if word == key_word:
-            fp_write.write(line)
-    fp_read.close()
-    fp_write.close()
+    if '2014' in key_word:
+        file_path_write2 = file_path_write[:file_path_write.rfind('.')]
+        file_path_write2 += '0.txt'
+        fp_write2 = open(file_path_write2, 'w')
+        for line in fp_read:
+            word = line.strip().split(',')[key_index]
+            word = word[:8]
+            # print chardet.detect(word)['encoding'], chardet.detect(key_word)['encoding']
+            # if word == key_word:
+            if word in key_word:
+                fp_write.write(line)
+            else:
+                fp_write2.write(line)
+        fp_read.close()
+        fp_write.close()
+        fp_write2.close()
+    else:
+        for line in fp_read:
+            word = line.strip().split(',')[key_index]
+            # print chardet.detect(word)['encoding'], chardet.detect(key_word)['encoding']
+            # if word == key_word:
+            if word in key_word:
+                fp_write.write(line)
+        fp_read.close()
+        fp_write.close()
 
 
 def convert(file_name, file_type, charset):
@@ -207,6 +225,7 @@ def gen_date_dict_bak(date_start, date_end):
         yyyy += 1
     return my_dict
 
+
 def gen_date_dict():
     my_dict = []
     date_y = '2015'
@@ -272,12 +291,6 @@ def what_day(yyyymmdd):
     #     return False
 
 
-def change_file_extensions(old_name, exten_type):
-    new_name = old_name[:old_name.rfind('.')]
-    new_name += '.' + exten_type
-    os.rename(old_name, new_name)
-
-
 def walk_dir(dir_path, file_type):
     file_names = []
     if os.path.isdir(dir_path):
@@ -289,10 +302,13 @@ def walk_dir(dir_path, file_type):
     return file_names
 
 
-def txt_to_csv(dir_path):
-    file_names = walk_dir(dir_path, 'csv')
+def change_file_extensions(dir_path, old_type, new_type):
+    file_names = walk_dir(dir_path, old_type)
     for file_name in file_names:
-        change_file_extensions(file_name, 'txt')
+        old_name = file_name
+        new_name = old_name[:old_name.rfind('.')]
+        new_name += '.' + new_type
+        os.rename(old_name, new_name)
 
 
 def analyse_data(file_path_read):
@@ -346,34 +362,6 @@ def analyse_data(file_path_read):
             fp_write.write(temp+'\n')
         fp_read.close()
         fp_write.close()
-
-
-def make_result(file_path_read):
-    fp_read = open('./date-7.txt', 'r')
-    date_list = []
-    hour_list = []
-    for line in fp_read:
-        line = line.strip()
-        date_list.append(line[:8])
-        hour_list.append(line[8:])
-    fp_read.close()
-    
-    file_path_write = file_path_read[:file_path_read.rfind('.')]
-    file_path_write += '-full.txt'
-    fp_read = open(file_path_read, 'r')
-    fp_write = open(file_path_write, 'w')
-    i = 0
-    for line in fp_read:
-        
-        num = int(float(line))
-        if num < 0:
-            num = 0
-        temp = '线路15' + ',' + date_list[i] + ',' + hour_list[i] + ',' + str(num)
-        fp_write.write(temp+'\n')
-        i += 1
-    fp_read.close()
-    fp_write.close()
-
 
 
 if __name__ == '__main__':
@@ -456,10 +444,10 @@ if __name__ == '__main__':
                         fp.write(str(key)+','+str(my_dict[key])+'\n')
                 fp.close()
 
-        elif func_num == '6':
-            print 'analyse the data.\n'
-            file_path_read = raw_input(prompt['file_path_read'])
-            analyse_data(file_path_read)
+        # elif func_num == '6':
+        #     print 'analyse the data.\n'
+        #     file_path_read = raw_input(prompt['file_path_read'])
+        #     analyse_data(file_path_read)
 
         else:
             continue
