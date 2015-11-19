@@ -48,3 +48,95 @@ weather
 中雨/中到大雨      1
 多云/大雨        1
 大雨/大到暴雨      1
+
+feature_cols = ['weekend', 'hour', 'holiday', 'weather']
+
+d:/tianchi/line10/count_by_date/train_data_filtered-line10-army-date-analyse.csv
+
+(1836, 4)
+(1836,)
+(612, 4)
+(612,)
+0.0
+[ 0.  0.  0.  0.]
+MAE: 0.0016339869281
+RMSE: 0.0404226041727
+done
+
+
+d:/tianchi/line10/count_by_date/train_data_filtered-line10-disable-date-analyse.
+csv
+(2214, 4)
+(2214,)
+(739, 4)
+(739,)
+3.89662864861
+[ -4.28410951  11.2333775   -3.37962119  -3.02979726]
+MAE: 7.51333628879
+RMSE: 9.01116290634
+done
+
+
+d:/tianchi/line10/count_by_date/train_data_filtered-line10-normal-date-analyse.c
+sv
+(2412, 4)
+(2412,)
+(805, 4)
+(805,)
+386.418310689
+[ -798.67515849  1174.44170776  -699.5719743   -430.15831018]
+MAE: 694.104092241
+RMSE: 927.19371922
+done
+
+
+d:/tianchi/line10/count_by_date/train_data_filtered-line10-older-date-analyse.cs
+v
+(2380, 4)
+(2380,)
+(794, 4)
+(794,)
+54.038735902
+[ -95.20460564  283.96586351  -48.74564951 -111.36265003]
+MAE: 224.212531896
+RMSE: 264.243160705
+done
+
+
+d:/tianchi/line10/count_by_date/train_data_filtered-line10-secure-date-analyse.c
+sv
+(1847, 4)
+(1847,)
+(616, 4)
+(616,)
+7.77594064593
+[-1.87420035 -7.34496685 -1.25117646 -0.65890003]
+MAE: 0.519425578069
+RMSE: 0.633185628274
+done
+
+
+d:/tianchi/line10/count_by_date/train_data_filtered-line10-student-date-analyse.
+csv
+(2337, 4)
+(2337,)
+(779, 4)
+(779,)
+21.9531098192
+[-27.09158637  85.65065275 -32.98177246 -43.53175618]
+MAE: 72.4766173132
+RMSE: 98.4393065722
+done
+
+
+d:/tianchi/line10/count_by_date/train_data_filtered-line10-stuff-date-analyse.cs
+v
+(2199, 4)
+(2199,)
+(733, 4)
+(733,)
+5.5835738717
+[-7.99804848  9.69415666 -9.9823773  -4.88528522]
+MAE: 6.74498174206
+RMSE: 8.58845210848
+done

@@ -33,6 +33,10 @@ prompt = {'choose' : 'Choose function:\
             'index' : 'Enter the index you want to count: '}
 # keyword = dict(cf.items('keyword'))
 
+
+
+
+
 def change_file_charset(file_path, file_type, charset):
     """change file type
 

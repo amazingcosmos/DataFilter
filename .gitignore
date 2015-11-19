@@ -3,3 +3,5 @@
 *.csv
 *.pyc
 !data_analyse.txt
+!date-7-analyse.csv
+!weather-analysed.csv
