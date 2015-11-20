@@ -9,6 +9,7 @@ from sklearn.cross_validation import train_test_split
 from sklearn.cross_validation import cross_val_score
 from sklearn.linear_model import LinearRegression
 from sklearn import metrics
+from sklearn.ensemble import RandomForestRegressor
 import my_filter
 import chardet
 import ConfigParser
@@ -35,18 +36,47 @@ prompt = {'choose' : 'Choose function:\
             'index' : 'Enter the index you want to count: '}
 # feature_cols = ['weekend', 'hour', 'holiday', 'weather']
 feature_cols = ['weekend', 'weather', 'temp_high', 'temp_low', 'temp_mean', 'temp_predict']
-if __name__ == '__main__':
-    file_path_read = raw_input(prompt['file_path_read'])
-    line_num = int(raw_input('what the line number: '))
-    df_test = pd.read_csv('./date-7-analysed.csv')
-    # X_test = df_test[feature_cols]
-    # X_test = preprocessing.normalize(X_test)
-    # print X_test.head()
+algorithm = [1, 2]
 
-    if os.path.isdir(file_path_read):
-        file_path_read = my_filter.walk_dir(file_path_read, 'csv')
-    else:
-        file_path_read = [file_path_read]
+
+def my_random_forests(file_path_read, df_test):
+    result = {}
+    i = 6
+    while i <= 21:
+        result[i] = []
+        i += 1
+    for path_read in file_path_read:
+        df = pd.read_csv(path_read)
+        # scaler = preprocessing.StandardScaler().fit(df[feature_cols])
+        i = 6
+        while i <= 21:
+            df_hour = df[df.hour == i][df.date > 20140910]
+            X_train = df_hour[feature_cols]
+            # X_train = scaler.transform(X_train)
+            # print X_train.head()
+            y_train = df_hour.num
+            X_test = df_test[df_test.hour == i][feature_cols]
+            # X_test = scaler.transform(X_test)
+
+            # print y_train.head()
+            estimator = RandomForestRegressor()
+            estimator = estimator.fit(X_train, y_train)
+            y_pred = estimator.predict(X_test)
+            y_pred_list = y_pred.tolist()
+            if file_path_read.index(path_read) == 0:
+                for y in y_pred_list:
+                    result[i].append(int(y))
+            else:
+                j = 0
+                for y in y_pred_list:
+                    result[i][j] += int(y) 
+                    j += 1
+            print 'done'
+            i += 1
+    return result
+
+
+def my_linear_regression(file_path_read, df_test):
     result = {}
     i = 6
     while i <= 21:
@@ -82,7 +112,77 @@ if __name__ == '__main__':
                     j += 1
             print 'done'
             i += 1
-    file_path_write = 'predict' + str(line_num) + '.txt'
+    return result
+
+
+
+if __name__ == '__main__':
+    file_path_read = raw_input(prompt['file_path_read'])
+    line_num = int(raw_input('what the line number: '))
+    algorithm_type = int(raw_input('what kind of algorithm you want to use:\
+                                \n1: linear regression\
+                                \n2: random forest\n'))
+    df_test = pd.read_csv('./date-7-analysed.csv')
+    # X_test = df_test[feature_cols]
+    # X_test = preprocessing.normalize(X_test)
+    # print X_test.head()
+
+    if os.path.isdir(file_path_read):
+        file_path_read = my_filter.walk_dir(file_path_read, 'csv')
+    else:
+        file_path_read = [file_path_read]
+
+    while(algorithm_type not in algorithm):
+        print '\n\nwrong algorithm type!\n'
+        algorithm_type = int(raw_input('what kind of algorithm you want to use:\
+                                \n1: linear regression\
+                                \n2: random forests\n'))
+
+    if algorithm_type == 1:
+        result = my_linear_regression(file_path_read, df_test)
+        file_path_write = 'predict' + '-linear' + '-line' + str(line_num) + '.txt'
+    else:
+        result = my_random_forests(file_path_read, df_test)
+        file_path_write = 'predict' + '-randomforest' + '-line' + str(line_num) + '.txt'
+
+    # result = {}
+    # i = 6
+    # while i <= 21:
+    #     result[i] = []
+    #     i += 1
+    # for path_read in file_path_read:
+    #     df = pd.read_csv(path_read)
+    #     scaler = preprocessing.StandardScaler().fit(df[feature_cols])
+    #     i = 6
+    #     while i <= 21:
+    #         df_hour = df[df.hour == i][df.date > 20141030]
+    #         X_train = df_hour[feature_cols]
+    #         X_train = scaler.transform(X_train)
+    #         # print X_train.head()
+    #         y_train = df_hour.num
+    #         X_test = df_test[df_test.hour == i][feature_cols]
+    #         X_test = scaler.transform(X_test)
+
+    #         # print y_train.head()
+    #         linreg = LinearRegression()
+    #         linreg.fit(X_train, y_train)
+    #         # print linreg.intercept_
+    #         # print linreg.coef_
+    #         y_pred = linreg.predict(X_test)
+    #         y_pred_list = y_pred.tolist()
+    #         if file_path_read.index(path_read) == 0:
+    #             for y in y_pred_list:
+    #                 result[i].append(int(y))
+    #         else:
+    #             j = 0
+    #             for y in y_pred_list:
+    #                 result[i][j] += int(y) 
+    #                 j += 1
+    #         print 'done'
+    #         i += 1
+
+
+    # file_path_write = 'predict' + str(line_num) + '.txt'
     fp_write = open(file_path_write, 'w')
     my_date = df_test.date.tolist()
     my_hour = df_test.hour.tolist()
