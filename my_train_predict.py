@@ -34,10 +34,11 @@ prompt = {'choose' : 'Choose function:\
             'file_path_read' : 'Enther the file path you want to handle: ',
             'index' : 'Enter the index you want to count: '}
 # feature_cols = ['weekend', 'hour', 'holiday', 'weather']
-feature_cols = ['weekend', 'weather']
+feature_cols = ['weekend', 'weather', 'temp_high', 'temp_low', 'temp_mean', 'temp_predict']
 if __name__ == '__main__':
     file_path_read = raw_input(prompt['file_path_read'])
-    df_test = pd.read_csv('./date-7-analyse.csv')
+    line_num = int(raw_input('what the line number: '))
+    df_test = pd.read_csv('./date-7-analysed.csv')
     # X_test = df_test[feature_cols]
     # X_test = preprocessing.normalize(X_test)
     # print X_test.head()
@@ -53,18 +54,22 @@ if __name__ == '__main__':
         i += 1
     for path_read in file_path_read:
         df = pd.read_csv(path_read)
+        scaler = preprocessing.StandardScaler().fit(df[feature_cols])
         i = 6
         while i <= 21:
-            df_hour = df[df.hour == i]
+            df_hour = df[df.hour == i][df.date > 20141030]
             X_train = df_hour[feature_cols]
-            # X_train = preprocessing.normalize(X_train)
+            X_train = scaler.transform(X_train)
             # print X_train.head()
             y_train = df_hour.num
             X_test = df_test[df_test.hour == i][feature_cols]
+            X_test = scaler.transform(X_test)
 
             # print y_train.head()
             linreg = LinearRegression()
             linreg.fit(X_train, y_train)
+            # print linreg.intercept_
+            # print linreg.coef_
             y_pred = linreg.predict(X_test)
             y_pred_list = y_pred.tolist()
             if file_path_read.index(path_read) == 0:
@@ -77,17 +82,31 @@ if __name__ == '__main__':
                     j += 1
             print 'done'
             i += 1
-    file_path_write = 'predict.txt'
+    file_path_write = 'predict' + str(line_num) + '.txt'
     fp_write = open(file_path_write, 'w')
     my_date = df_test.date.tolist()
     my_hour = df_test.hour.tolist()
-    print zip(my_date, my_hour)
+    # print zip(my_date, my_hour)
     i = 0
     for date in my_date:
-        value = str(my_date[i]) + ','
+        value = '线路' + str(line_num) + ','
+        value += str(my_date[i]) + ','
         value += str(my_hour[i]) + ','
-        num = str(result[int(my_hour[i])][i/16])
-        value += num
+
+        num = int(result[int(my_hour[i])][i/16])
+        if my_hour[i] == 12:
+            if line_num == 10:
+                if my_date[i] <= 20150103:
+                    num += 740
+                else:
+                    num += 3000
+            if line_num == 15:
+                if my_date[i] <= 20150103:
+                    num += 370
+                else:
+                    num += 1500
+
+        value += str(num)
         fp_write.write(str(value)+'\n')
         i += 1
     fp_write.close()

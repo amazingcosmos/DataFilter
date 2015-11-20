@@ -3,6 +3,6 @@
 *.csv
 *.pyc
 !data_analyse.txt
-!date-7-analyse.csv
+!date-7-analysed.csv
 !weather-analysed.csv
 try_*

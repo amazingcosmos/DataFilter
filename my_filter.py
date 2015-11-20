@@ -34,9 +34,6 @@ prompt = {'choose' : 'Choose function:\
 # keyword = dict(cf.items('keyword'))
 
 
-
-
-
 def change_file_charset(file_path, file_type, charset):
     """change file type
 
@@ -315,59 +312,6 @@ def change_file_extensions(dir_path, old_type, new_type):
         os.rename(old_name, new_name)
 
 
-def analyse_data(file_path_read):
-    lables = 'what_day,hour,holiday,num'
-    # lables = 'what_day,hour,holiday'
-    if os.path.isdir(file_path_read):
-        file_path_read = walk_dir(file_path_read, 'txt')
-
-    if type(file_path_read) == types.ListType:
-        for path_read in file_path_read:
-            file_path_write = path_read[:path_read.rfind('.')]
-            file_path_write += '-analyse.csv'
-
-            fp_read = open(path_read, 'r')
-            fp_write = open(file_path_write, 'w')
-            fp_write.write(lables+'\n')
-            for line in fp_read:
-                date, num = line.strip().split(',')
-                # date = line.strip()
-                hour = date[-2:]
-                date = date[:-2]
-                temp = ''
-                temp += what_day(date) + ',' + hour + ','
-                if date in holiday:
-                    temp += '1'
-                else:
-                    temp += '0'
-                temp += ',' + num 
-                fp_write.write(temp+'\n')
-            fp_read.close()
-            fp_write.close()
-    else:
-        file_path_write = file_path_read[:file_path_read.rfind('.')]
-        file_path_write += '-analyse.csv'
-
-        fp_read = open(file_path_read, 'r')
-        fp_write = open(file_path_write, 'w')
-        fp_write.write(lables+'\n')
-        for line in fp_read:
-            date, num = line.strip().split(',')
-            # date = line.strip()
-            hour = date[-2:]
-            date = date[:-2]
-            temp = ''
-            temp += what_day(date) + ',' + hour + ','
-            if date in holiday:
-                temp += '1'
-            else:
-                temp += '0'
-            temp += ',' + num 
-            fp_write.write(temp+'\n')
-        fp_read.close()
-        fp_write.close()
-
-
 if __name__ == '__main__':
     while(1):
         print('\n')
@@ -420,38 +364,17 @@ if __name__ == '__main__':
 
             if os.path.isdir(file_path_read):
                 file_path_read = walk_dir(file_path_read, 'txt')
-                # dir_path = file_path_read
-                # file_path_read = []
-                # for parent, dirnames, filenames in os.walk(dir_path):
-                #     for file_name in filenames:
-                #         if file_name.strip().split('.')[-1] == 'txt':
-                #             temp = parent+'/'+file_name
-                #             file_path_read.append(temp)
-
-            if type(file_path_read) == types.ListType:
-                for path_read in file_path_read:
-                    file_path_write = path_read[:path_read.rfind('.')]
-                    file_path_write += '-date.txt'
-                    my_dict = gen_date_dict()
-                    my_dict = data_counter(path_read, my_dict, key_index)
-                    fp = open(file_path_write, 'w')
-                    for key in my_dict:
-                            fp.write(str(key)+','+str(my_dict[key])+'\n')
-                    fp.close()
             else:
-                file_namepath_write = file_path_read[:file_path_read.rfind('.')]
+                file_path_read = [file_path_read]
+
+            for path_read in file_path_read:
+                file_path_write = path_read[:path_read.rfind('.')]
                 file_path_write += '-date.txt'
                 my_dict = gen_date_dict()
-                my_dict = data_counter(file_path_read, my_dict, key_index)
+                my_dict = data_counter(path_read, my_dict, key_index)
                 fp = open(file_path_write, 'w')
                 for key in my_dict:
-                        fp.write(str(key)+','+str(my_dict[key])+'\n')
+                    fp.write(str(key)+','+str(my_dict[key])+'\n')
                 fp.close()
-
-        # elif func_num == '6':
-        #     print 'analyse the data.\n'
-        #     file_path_read = raw_input(prompt['file_path_read'])
-        #     analyse_data(file_path_read)
-
         else:
             continue

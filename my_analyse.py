@@ -44,59 +44,6 @@ def make_result(file_path_read, line_name):
     fp_write.close()
 
 
-def analyse_data_date(file_path_read): 
-    lables = 'date,what_day,hour,holiday,weekend'
-    # lables = 'date,what_day,hour,holiday,num'
-    if os.path.isdir(file_path_read):
-        file_path_read = my_filter.walk_dir(file_path_read, 'txt')
-
-    if type(file_path_read) == types.ListType:
-        for path_read in file_path_read:
-            file_path_write = path_read[:path_read.rfind('.')]
-            file_path_write += '-analyse.csv'
-
-            fp_read = open(path_read, 'r')
-            fp_write = open(file_path_write, 'w')
-            fp_write.write(lables+'\n')
-            for line in fp_read:
-                # date, num = line.strip().split(',')
-                date = line.strip()
-                hour = date[-2:]
-                date = date[:-2]
-                temp = date
-                temp += ',' + my_filter.what_day(date) + ',' + hour
-                if date in holiday:
-                    temp += ',' + '1'
-                else:
-                    temp += ',' + '0'
-                # temp += ',' + num 
-                fp_write.write(temp+'\n')
-            fp_read.close()
-            fp_write.close()
-    else:
-        file_path_write = file_path_read[:file_path_read.rfind('.')]
-        file_path_write += '-analyse.csv'
-
-        fp_read = open(file_path_read, 'r')
-        fp_write = open(file_path_write, 'w')
-        fp_write.write(lables+'\n')
-        for line in fp_read:
-            # date, num = line.strip().split(',')
-            date = line.strip()
-            hour = date[-2:]
-            date = date[:-2]
-            temp = date 
-            temp += ',' + my_filter.what_day(date) + ',' + hour
-            if date in holiday_date:
-                temp += ',' + '1'
-            else:
-                temp += ',' + '0'
-            # temp += ',' + num 
-            fp_write.write(temp+'\n')
-        fp_read.close()
-        fp_write.close()
-
-
 def analyse_data(file_path_read, task_type = 1): 
     weather_dict = data_dict('./weather-analysed.csv', 'date')
     # task_type = train is 1, test is 2
@@ -104,9 +51,9 @@ def analyse_data(file_path_read, task_type = 1):
         print 'wrong task_type, please input 1 for train, 2 for test.\n'
         return -1
     if task_type == 1:
-        labels = 'date,what_day,hour,holiday,weekend,weather,num'
+        labels = 'date,what_day,hour,holiday,weekend,weather,temp_high,temp_low,temp_mean,temp_predict,num'
     else:
-        labels = 'date,what_day,hour,holiday,weekend,weather'
+        labels = 'date,what_day,hour,holiday,weekend,weather,temp_high,temp_low,temp_mean,temp_predict'
     
     if os.path.isdir(file_path_read):
         file_path_read = my_filter.walk_dir(file_path_read, 'txt')
@@ -115,7 +62,7 @@ def analyse_data(file_path_read, task_type = 1):
 
     for path_read in file_path_read:
         file_path_write = path_read[:path_read.rfind('.')]
-        file_path_write += '-analyse.csv'
+        file_path_write += '-analysed.csv'
 
         fp_read = open(path_read, 'r')
         fp_write = open(file_path_write, 'w')
@@ -141,7 +88,22 @@ def analyse_data(file_path_read, task_type = 1):
                 write_dict['weekend'] = '1'
             else:
                 write_dict['weekend'] = '0'
+
             write_dict['weather'] = weather_dict[write_dict['date']]['weather']
+            write_dict['temp_high'] = weather_dict[write_dict['date']]['temp_high']
+            write_dict['temp_low'] = weather_dict[write_dict['date']]['temp_low']
+            write_dict['temp_mean'] = weather_dict[write_dict['date']]['temp_mean']
+
+            hour = int(date_hour[-2:])
+            temp_low = float(write_dict['temp_low'])
+            temp_high = float(write_dict['temp_high'])
+            if hour < 6:
+                temp_predict = temp_high - (hour+24-14)/16.0*(temp_high - temp_low)
+            elif hour < 14:
+                temp_predict = temp_low + (hour-6)/8.0*(temp_high - temp_low)
+            else:
+                temp_predict = temp_high - (hour-14)/16.0*(temp_high - temp_low)
+            write_dict['temp_predict'] = str(temp_predict)
 
             label_list = labels.strip().split(',')
             for l in label_list:
@@ -223,7 +185,7 @@ def analyse_weather_data(file_path_read):
     file_path_write += '-analysed.csv'
     fp_read = open(file_path_read, 'r')
     fp_write = open(file_path_write, 'w')
-    labels = 'date,weather'
+    labels = 'date,weather,temp_high,temp_low,temp_mean'
 
     fp_write.write(labels+'\n')
 
@@ -233,7 +195,7 @@ def analyse_weather_data(file_path_read):
         line = line.strip().split(',')
         if len(line) != 4:
             continue
-        date, kind, tem, wind = line
+        date, kind, temp, wind = line
 
         date = date.split('/')
         date_expand = date[0]
@@ -250,7 +212,13 @@ def analyse_weather_data(file_path_read):
         else:
             kind_expand = '0'
 
-        fp_write.write(date_expand+','+kind_expand+'\n')
+        temp = temp.split('/')
+        temp_high = temp[0].strip('℃')
+        temp_low = temp[1].strip('℃')
+        temp_mean = str((float(temp_high) + float(temp_low))/2)
+
+
+        fp_write.write(date_expand+','+kind_expand+','+temp_high+','+temp_low+','+temp_mean+'\n')
 
     fp_read.close()
     fp_write.close()
